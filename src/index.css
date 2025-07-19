@@ -1,0 +1,26 @@
+:root {
+    margin: 0px;
+    padding: 0px;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif;
+
+    /* Backgrounds */
+    --color-bg: #f2f0eb;
+    --color-surface: #ffffff;
+
+    /* Text */
+    --color-text: #2e2e2e;
+
+    /* Primary accent */
+    --color-accent: #0077ff;
+    --color-accent-light: rgba(0, 119, 255, 0.2);
+
+    /* Borders & Boxes */
+    --color-border: #cccccc;
+    --color-box-bg: #ffffff;
+    --color-box-text: #333333;
+
+    /* Result feedback */
+    --color-success: #2e7d32;
+    --color-error: #c62828;
+}
