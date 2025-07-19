@@ -11,11 +11,17 @@ function App() {
   const [guess, setGuess] = useState('');
   const [result, setResult] = useState('');
 
+  const [startTime, setStartTime] = useState(null);
+  const [endTime, setEndTime] = useState(null);
+  const [timeTaken, setTimeTaken] = useState(null);
+
+
   useEffect(() => {
     const loadWordAndDefinition = async () => {
       try {
         const dailyWord = await getDailyWord();  // wait for the word string
         setWord(dailyWord);
+        setStartTime(Date.now())
 
         const def = await getDefinition(dailyWord);
         setDefinition(def);
@@ -74,7 +80,11 @@ function App() {
                   if (value.length === word.length) {
                     const normalized = value.trim().toLowerCase();
                     if (normalized === word.toLowerCase()) {
-                      setResult("Correct!");
+                      const end = Date.now();
+                      setEndTime(end);
+                      const seconds = (end-startTime) / 1000;
+                      setTimeTaken(seconds);
+                      setResult(`Correct! You solved it in ${seconds} seconds.`);            
                     } else {
                       setResult("Try again.");
                     }
@@ -85,6 +95,19 @@ function App() {
             
           </motion.div>
           <p className='result'>{result}</p>
+          {timeTaken !== null && (
+            <button
+              onClick={() => {
+                const scoreText = `🎯 I solved the Reverse Dictionary puzzle in ${timeTaken} seconds! Can you beat me?`;
+                navigator.clipboard.writeText(scoreText);
+                alert('Score copied to clipboard!');
+              }}
+              className="copy-score-button"
+            >
+              Copy Your Score
+            </button>
+          )}
+
         </motion.div>
       )}
     </div>
