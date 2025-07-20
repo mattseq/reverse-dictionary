@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import ReactCodeInput from 'react-code-input'
 import { color, motion, spring } from 'framer-motion'
 import confetti from 'canvas-confetti';
@@ -17,6 +17,10 @@ function App() {
   const [startTime, setStartTime] = useState(null);
   const [endTime, setEndTime] = useState(null);
   const [timeTaken, setTimeTaken] = useState(null);
+  const [elapsed, setElapsed] = useState(0);
+
+  const [attempts, setAttempts] = useState(0);
+  const attemptsRef = useRef(0);
 
   const [streak, setStreak] = useState(0);
 
@@ -39,13 +43,22 @@ function App() {
     loadWordAndDefinition();
   }, []);
 
+  useEffect(() => {
+    if (!startTime || endTime) return;
+    const interval = setInterval(() => {
+      setElapsed(Math.floor((Date.now() - startTime) / 1000));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [startTime, endTime]);
+
   function guessedCorrect() {
+    
     const end = Date.now();
     setEndTime(end);
     const seconds = (end-startTime) / 1000;
     setTimeTaken(seconds);
 
-    setResult(`Correct! You solved it in ${seconds} seconds.`);
+    setResult(`Correct! You solved it in ${seconds} seconds and ${attemptsRef.current} attempt${attemptsRef.current == 1 ? '' : 's'}.`);
     setResultClass('correct');
 
     confetti({
@@ -77,21 +90,31 @@ function App() {
   }
 
   function guessedWrong() {
-    setResult("Try again.");
-      setResultClass('wrong');
-      setTimeout(() => setResultClass(''), 400)
+    
+    if (attemptsRef.current == 1) {
+      setResult(`Try again. The first letter is ${word[0].toUpperCase()}`)
+    } else if (attemptsRef.current == 2) {
+      setResult(`Try again. The second letter is ${word[1].toUpperCase()}`)
+    } else if (attemptsRef.current == 3) {
+      setResult(`Try again. Here's a sentence using this word: {}`)
+    } else {
+      setResult("Try again.");
+    }
+    
+    setResultClass('wrong');
+    setTimeout(() => setResultClass(''), 400)
   }
 
   return (
     <div className='app-container'>
-
-      <motion.h1
+      <motion.div
         initial={{ opacity: 1, y: -80 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: spring, stiffness: 100, bounce: 0.4, duration: 1 }}
       >
-        Reverse Dictionary
-      </motion.h1>
+        <h1>Reverse Dictionary</h1>
+        <h3>Guess the word from its defintion.</h3>
+      </motion.div>
 
       <motion.div
         className='extras'
@@ -99,8 +122,9 @@ function App() {
         animate={{ opacity: 1 }}
         transition={{ transition: 0.5, delay: 1 }}
       >
-        <p className="date-label" >Puzzle for {new Date().toLocaleDateString()}</p>
-        <p>Current streak: {streak} day{streak === 1 ? '' : 's'}</p>
+        <p className="date-label" >📅 Puzzle for {new Date().toLocaleDateString()}</p>
+        <p>🔥 Current streak: {streak} day{streak === 1 ? '' : 's'}</p>
+        <p>⏱️ Time so far: {elapsed} seconds</p>
       </motion.div>
       
       {(definition == "No definition found.") ? (
@@ -138,7 +162,10 @@ function App() {
                 autoFocus
                 onChange={(value) => {
                   setGuess(value);
+                  
                   if (value.length === word.length) {
+                    attemptsRef.current += 1;
+                    setAttempts(attemptsRef.current);
                     const normalized = value.trim().toLowerCase();
                     if (normalized === word.toLowerCase()) {
                       guessedCorrect();
@@ -155,7 +182,7 @@ function App() {
           {timeTaken !== null && (
             <motion.button
               onClick={() => {
-                const scoreText = `I solved the Reverse Dictionary puzzle in ${timeTaken} seconds! Can you beat me?`;
+                const scoreText = `I solved the Reverse Dictionary puzzle in ${timeTaken} seconds with ${attemptsRef.current}! Can you beat me? https://mattseq.github.io/reverse-dictionary/`;
                 navigator.clipboard.writeText(scoreText);
                 alert('Score copied to clipboard!');
               }}
