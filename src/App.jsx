@@ -24,6 +24,8 @@ function App() {
 
   const [streak, setStreak] = useState(0);
 
+  const [exampleSentence, setExampleSentence] = useState('');
+
   useEffect(() => {
     const loadWordAndDefinition = async () => {
       try {
@@ -31,11 +33,14 @@ function App() {
         setWord(dailyWord);
         setStartTime(Date.now())
 
-        const def = await getDefinition(dailyWord);
+        const {def, example} = await getDefinition(dailyWord);
         setDefinition(def);
+        const sanitizedExample = example.replace(new RegExp(`\\b${dailyWord}\\b`, "gi"), '____');
+        setExampleSentence(sanitizedExample || '');
         console.log(`Loaded word: ${dailyWord}, Definition: ${def}`); // Debugging line
       } catch (err) {
         setDefinition("Couldn't load definition.");
+        setExampleSentence('');
         console.error(err);
       }
     };
@@ -96,7 +101,7 @@ function App() {
     } else if (attemptsRef.current == 2) {
       setResult(`Try again. The second letter is ${word[1].toUpperCase()}`)
     } else if (attemptsRef.current == 3) {
-      setResult(`Try again. Here's a sentence using this word: {}`)
+      setResult(`Try again. Here's a sentence using this word: ${exampleSentence}`)
     } else {
       setResult("Try again.");
     }
